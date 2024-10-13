@@ -29,7 +29,7 @@ import xbmcplugin
 
 PROTOCOL = 'mpd'
 DRM = 'com.widevine.alpha'
-STREAM_URL = 'https://demo.unified-streaming.com/video/tears-of-steel/tears-of-steel-dash-widevine.ism/.mpd'
+STREAM_URL = 'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel-dash-widevine.ism/.mpd'
 MIME_TYPE = 'application/dash+xml'
 LICENSE_URL = 'https://widevine-proxy.appspot.com/proxy'
 KODI_VERSION_MAJOR = int(xbmc.getInfoLabel('System.BuildVersion').split('.')[0])
@@ -91,6 +91,33 @@ Please report any issues or bug reports on the [GitHub Issues](https://github.co
 This module is licensed under the **The MIT License**. Please see the [LICENSE.txt](LICENSE.txt) file for details.
 
 ## Releases
+### v0.7.0 (2024-09-24)
+- Get rid of distutils dependency (@horstle, @emilsvennesson)
+- Option to get Widevine from lacros image (@horstle)
+- Remove support for Python 2 and pre-Matrix Kodi versions (@horstle)
+
+### v0.6.1 (2023-05-30)
+- Performance improvements on Linux ARM (@horstle)
+- This will be the last release for Python 2 i.e. Kodi 18 (Leia) and below. The next release will require Python 3 and Kodi 19 (Matrix) or higher.
+
+### v0.6.0 (2023-05-03)
+- Initial support for AARCH64 Linux (@horstle)
+- Initial support for AARCH64 Macs (@mediaminister)
+- New option to install a specific version on most platforms (@horstle)
+
+### v0.5.10 (2022-04-18)
+- Fix automatic submission of release (@mediaminister)
+- Update German translation (@tweimer)
+- Fix update_frequency setting (@horstle)
+- Fix install_from (@horstle)
+- Improve/Fix Widevine extraction from Chrome OS images (@horstle)
+
+### v0.5.9 (2022-03-22)
+- Update Croatian translation (@dsardelic, @muzena)
+- Replace deprecated LooseVersion (@mediaminister, @MarkusVolk)
+- Fix http_get decode error (@archtur)
+- Option to install Widevine from specified source (@horstle)
+
 ### v0.5.8 (2021-09-09)
 - Simplify Widevine CDM installation on ARM hardware (@horstle, @mediaminister)
 - Update Chrome OS ARM hardware id's (@mediaminister)

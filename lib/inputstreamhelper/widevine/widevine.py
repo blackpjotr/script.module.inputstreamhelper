@@ -3,13 +3,19 @@
 """Implements generic widevine functions used across architectures"""
 
 from __future__ import absolute_import, division, unicode_literals
+
 import os
 from time import time
 
 from .. import config
-from ..kodiutils import addon_profile, exists, get_setting_int, listdir, localize, log, mkdirs, ok_dialog, open_file, set_setting, translate_path, yesno_dialog
-from ..utils import arch, cmd_exists, hardlink, http_download, http_get, http_head, remove_tree, run_cmd, store, system_os
+from ..kodiutils import (addon_profile, exists, get_setting_int, listdir,
+                         localize, log, mkdirs, ok_dialog, open_file,
+                         set_setting, translate_path, yesno_dialog)
 from ..unicodes import compat_path, to_unicode
+from ..utils import (arch, cmd_exists, hardlink, http_download, parse_version,
+                     remove_tree, run_cmd, system_os)
+from .arm_lacros import cdm_from_lacros, latest_lacros
+from .repo import cdm_from_repo, latest_widevine_available_from_repo
 
 
 def install_cdm_from_backup(version):
@@ -28,23 +34,23 @@ def install_cdm_from_backup(version):
 
 def widevine_eula():
     """Displays the Widevine EULA and prompts user to accept it."""
-    if 'x86' in arch():
-        cdm_version = latest_available_widevine_from_repo().get('version')
+    if cdm_from_repo():
+        cdm_version = latest_widevine_available_from_repo().get('version')
         cdm_os = config.WIDEVINE_OS_MAP[system_os()]
-        cdm_arch = config.WIDEVINE_ARCH_MAP_X86[arch()]
-    else:  # grab the license from the x86 files
+        cdm_arch = config.WIDEVINE_ARCH_MAP_REPO[arch()]
+    else:  # Grab the license from the x86 files
         log(0, 'Acquiring Widevine EULA from x86 files.')
-        cdm_version = latest_widevine_version(eula=True)
+        cdm_version = '4.10.2830.0' # fine to hardcode as it's only used for the EULA
         cdm_os = 'mac'
         cdm_arch = 'x64'
 
     url = config.WIDEVINE_DOWNLOAD_URL.format(version=cdm_version, os=cdm_os, arch=cdm_arch)
-    downloaded = http_download(url, message=localize(30025), background=True)  # Acquiring EULA
-    if not downloaded:
+    dl_path = http_download(url, message=localize(30025), background=True)  # Acquiring EULA
+    if not dl_path:
         return False
 
     from zipfile import ZipFile
-    with ZipFile(compat_path(store('download_path'))) as archive:
+    with ZipFile(compat_path(dl_path)) as archive:
         with archive.open(config.WIDEVINE_LICENSE_FILE) as file_obj:
             eula = file_obj.read().decode().strip().replace('\n', ' ')
 
@@ -64,7 +70,7 @@ def widevine_config_path():
     iacdm = ia_cdm_path()
     if iacdm is None:
         return None
-    if 'x86' in arch():
+    if cdm_from_repo() or cdm_from_lacros():
         return os.path.join(iacdm, config.WIDEVINE_CONFIG_NAME)
     return os.path.join(iacdm, 'config.json')
 
@@ -153,12 +159,13 @@ def missing_widevine_libs():
     return None
 
 
-def latest_widevine_version(eula=False):
-    """Returns the latest available version of Widevine CDM/Chrome OS."""
-    if eula or 'x86' in arch():
-        url = config.WIDEVINE_VERSIONS_URL
-        versions = http_get(url)
-        return versions.split()[-1]
+def latest_widevine_version():
+    """Returns the latest available version of Widevine CDM/Chrome OS/Lacros Image."""
+    if cdm_from_repo():
+        return latest_widevine_available_from_repo().get('version')
+
+    if cdm_from_lacros():
+        return latest_lacros()
 
     from .arm import chromeos_config, select_best_chromeos_image
     devices = chromeos_config()
@@ -170,36 +177,24 @@ def latest_widevine_version(eula=False):
     return arm_device.get('version')
 
 
-def latest_available_widevine_from_repo():
-    """Returns the latest available Widevine CDM version and url from Google's library CDM repository"""
-    cdm_versions = http_get(config.WIDEVINE_VERSIONS_URL).strip('\n').split('\n')
-    cdm_os = config.WIDEVINE_OS_MAP[system_os()]
-    cdm_arch = config.WIDEVINE_ARCH_MAP_X86[arch()]
-    available_cdms = []
-    for cdm_version in cdm_versions:
-        cdm_url = config.WIDEVINE_DOWNLOAD_URL.format(version=cdm_version, os=cdm_os, arch=cdm_arch)
-        http_status = http_head(cdm_url)
-        if http_status == 200:
-            available_cdms.append(dict(version=cdm_version, url=cdm_url))
-    return available_cdms[-1]
-
-
 def remove_old_backups(bpath):
     """Removes old Widevine backups, if number of allowed backups is exceeded"""
-    from distutils.version import LooseVersion  # pylint: disable=import-error,no-name-in-module,useless-suppression
-
     max_backups = get_setting_int('backups', 4)
-    versions = sorted([LooseVersion(version) for version in listdir(bpath)])
+    versions = sorted([parse_version(version) for version in listdir(bpath)])
 
     if len(versions) < 2:
         return
 
-    installed_version = load_widevine_config()['version']
+    try:
+        installed_version = load_widevine_config()['version']
+    except TypeError:
+        log(2, "could not determine installed version. Aborting cleanup of old versions.")
+        return
 
     while len(versions) > max_backups + 1:
-        remove_version = str(versions[1] if versions[0] == LooseVersion(installed_version) else versions[0])
+        remove_version = str(versions[1] if versions[0] == parse_version(installed_version) else versions[0])
         log(0, 'Removing oldest backup which is not installed: {version}', version=remove_version)
         remove_tree(os.path.join(bpath, remove_version))
-        versions = sorted([LooseVersion(version) for version in listdir(bpath)])
+        versions = sorted([parse_version(version) for version in listdir(bpath)])
 
     return

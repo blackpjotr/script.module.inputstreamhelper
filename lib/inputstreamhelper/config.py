@@ -42,9 +42,10 @@ WIDEVINE_SUPPORTED_ARCHS = [
     'arm64'
 ]
 
-WIDEVINE_ARCH_MAP_X86 = {
+WIDEVINE_ARCH_MAP_REPO = {
     'x86_64': 'x64',
-    'x86': 'ia32'
+    'x86': 'ia32',
+    'arm64': 'arm64'
 }
 
 WIDEVINE_OS_MAP = {
@@ -79,38 +80,38 @@ WIDEVINE_CONFIG_NAME = 'manifest.json'
 
 CHROMEOS_RECOVERY_URL = 'https://dl.google.com/dl/edgedl/chromeos/recovery/recovery.json'
 
-# To keep the Chrome OS ARM hardware ID list up to date, the following resources can be used:
+# To keep the Chrome OS ARM(64) hardware ID list up to date, the following resources can be used:
 # https://www.chromium.org/chromium-os/developer-information-for-chrome-os-devices
-# https://cros-updates-serving.appspot.com/
-# Last updated: 2021-09-06
-CHROMEOS_RECOVERY_ARM_HWIDS = [
-    'BOB',
-    'BURNET',
-    'DAMU',
-    'DRUWL',
-    'DUMO',
-    'ELM',
-    'ESCHE',
-    'FENNEL',
-    'FENNEL14',
-    'FIEVEL',
-    'HANA',
-    'JUNIPER-HVPU',
-    'KAKADU-WFIQ',
-    'KAPPA',
-    'KENZO-IGRW',
-    'KEVIN',
-    'KODAMA',
-    'KRANE-ZDKS',
-    'LAZOR',
-    'LIMOZEEN',
-    'POMPOM-MZVS',
-    'SCARLET',
-    'TIGER',
-    'WILLOW-TFIY',
+# https://chromiumdash.appspot.com/serving-builds?deviceCategory=Chrome%20OS
+# Last updated: 2024-10-13
+# current Chrome OS version: 16002.44.0, Widevine version: 4.10.2662.3
+CHROMEOS_RECOVERY_ARM_BNAMES = [
+    'bob',  # no longer updated, still latest wv. last: https://dl.google.com/dl/edgedl/chromeos/recovery/chromeos_15509.81.0_bob_recovery_stable-channel_mp-v2.bin.zip
+    'elm',  # probably 64bit soon. current: https://dl.google.com/dl/edgedl/chromeos/recovery/chromeos_15886.44.0_elm_recovery_stable-channel_mp-v6.bin.zip
+    'hana',  # probably 64bit soon. current: https://dl.google.com/dl/edgedl/chromeos/recovery/chromeos_15964.59.0_hana_recovery_stable-channel_mp-v11.bin.zip
+    'kevin',  # no longer updated, still latest wv. last: https://dl.google.com/dl/edgedl/chromeos/recovery/chromeos_15509.81.0_kevin_recovery_stable-channel_mp-v2.bin.zip
+    'scarlet',  # no longer updated, still latest wv. last: https://dl.google.com/dl/edgedl/chromeos/recovery/chromeos_15509.81.0_scarlet_recovery_stable-channel_mp-v8.bin.zip
+]
+
+CHROMEOS_RECOVERY_ARM64_BNAMES = [
+    'asurada',
+    'cherry',
+    'corsola',
+    'jacuzzi',
+    'kukui',
+    'strongbad',
+    'trogdor',
 ]
 
 CHROMEOS_BLOCK_SIZE = 512
+
+LACROS_DOWNLOAD_URL = "https://gsdview.appspot.com/chromeos-localmirror/distfiles/chromeos-lacros-{arch}-squash-zstd-{version}"
+
+LACROS_LATEST = "https://chromiumdash.appspot.com/fetch_releases?channel=Stable&platform=Lacros&num=1"
+
+MINIMUM_INPUTSTREAM_VERSION_ARM64 = {
+    'inputstream.adaptive': '20.3.5',
+}
 
 HLS_MINIMUM_IA_VERSION = '2.0.10'
 

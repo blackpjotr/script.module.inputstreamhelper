@@ -11,7 +11,10 @@ def run(params):
     """Route to API method"""
     if 2 <= len(params) <= 4:
         if params[1] == 'widevine_install':
-            widevine_install()
+            if len(params) == 3:
+                widevine_install(choose_version=params[2])
+            else:
+                widevine_install()
         elif params[1] == 'widevine_remove':
             widevine_remove()
         elif params[1] in ('rollback', 'widevine_rollback'):
@@ -23,6 +26,8 @@ def run(params):
                 check_inputstream(params[2], drm=params[3])
         elif params[1] == 'info':
             info_dialog()
+        elif params[1] == 'widevine_install_from':
+            widevine_install_from()
         else:
             log(4, "Invalid API call method '{method}'", method=params[1])
 
@@ -37,9 +42,15 @@ def check_inputstream(protocol, drm=None):
     Helper(protocol, drm=drm).check_inputstream()
 
 
-def widevine_install():
+def widevine_install(choose_version=False):
     """The API interface to install Widevine CDM"""
-    Helper('mpd', drm='widevine').install_widevine()
+    choose_version = choose_version in ("True", "true")
+    Helper('mpd', drm='widevine').install_widevine(choose_version=choose_version)
+
+
+def widevine_install_from():
+    """The API interface to install Widevine CDM from a given resource (URL or local ChromeOS image)."""
+    Helper('mpd', drm='widevine').install_widevine_from()
 
 
 def widevine_remove():
