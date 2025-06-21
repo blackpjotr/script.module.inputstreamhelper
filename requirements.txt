@@ -6,3 +6,4 @@ pylint
 setuptools >= 41
 tox
 xmlschema==1.0.18; python_version == '2.7'
+urllib3>=2.5.0 # not directly required, pinned by Snyk to avoid a vulnerability
